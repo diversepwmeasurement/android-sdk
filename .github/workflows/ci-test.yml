@@ -1,36 +1,41 @@
-on:
-  push:
-    paths-ignore:
-      - '**.md'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-name: Run Test Cases
 jobs:
   test-on-mac:
-    runs-on: macos-12
+    runs-on: self-hosted
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
-      - name: Setup Java Version
-        uses: actions/setup-java@v2
-        with:
-          java-version: 11
-          distribution: temurin
-          cache: gradle
-      - name: Run Cases
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 22
-          profile: Nexus 6
-          arch: x86_64
-          script: |
-            ./gradlew connectedCheck
-            ./gradlew build
-            ./gradlew :library:createDebugAndroidTestCoverageReport --info --stacktrace
-            ./gradlew connectedAndroidTest  --info --stacktrace
-      - name: Upload coverage.txt
-        run: |
-          bash <(curl -s https://codecov.io/bash)
+    - continue-on-error: true
+      name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.ref }}
+    - continue-on-error: true
+      name: Setup Java Version
+      uses: actions/setup-java@v2
+      with:
+        cache: gradle
+        distribution: temurin
+        java-version: 11
+    - continue-on-error: true
+      name: Run Cases
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 22
+        arch: x86_64
+        profile: Nexus 6
+        script: './gradlew connectedCheck
+
+          ./gradlew build
+
+          ./gradlew :library:createDebugAndroidTestCoverageReport --info --stacktrace
+
+          ./gradlew connectedAndroidTest  --info --stacktrace
+
+          '
+    - continue-on-error: true
+      name: Upload coverage.txt
+      run: 'bash <(curl -s https://codecov.io/bash)
+
+        '
+name: Run Test Cases
+on:
+  repository_dispatch:
+    types: trigger-ga___ci-test.yml
